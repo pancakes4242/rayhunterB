@@ -1,5 +1,6 @@
 <script lang="ts">
     import { get_config, set_config, test_notification, type Config } from '../utils.svelte';
+    import BrowserNotificationSettings from './BrowserNotificationSettings.svelte';
 
     let config = $state<Config | null>(null);
 
@@ -143,8 +144,12 @@
                     </div>
                 </div>
 
+                <BrowserNotificationSettings />
+
                 <div class="border-t pt-4 mt-6 space-y-3">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Notification Settings</h3>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        Push Notification Settings (ntfy)
+                    </h3>
                     <div>
                         <label for="ntfy_url" class="block text-sm font-medium text-gray-700 mb-1">
                             ntfy URL for Sending Notifications (if unset you will not receive

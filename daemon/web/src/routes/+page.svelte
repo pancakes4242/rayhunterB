@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { ManifestEntry } from '$lib/manifest.svelte';
     import { get_manifest, get_system_stats } from '$lib/utils.svelte';
     import ManifestTable from '$lib/components/ManifestTable.svelte';
@@ -11,6 +12,10 @@
     import ConfigForm from '$lib/components/ConfigForm.svelte';
     import ActionErrors from '$lib/components/ActionErrors.svelte';
     import LogView from '$lib/components/LogView.svelte';
+    import {
+        initBrowserNotifications,
+        notifyWarningDetected,
+    } from '$lib/browserNotifications.svelte';
 
     let manager: AnalysisManager = new AnalysisManager();
     let loaded = $state(false);
@@ -20,6 +25,21 @@
     let system_stats: SystemStats | undefined = $state(undefined);
     let update_error: string | undefined = $state(undefined);
     let logview_shown: boolean = $state(false);
+
+    // Initialize browser notifications on mount
+    onMount(() => {
+        initBrowserNotifications();
+    });
+
+    // Check entries for warnings and trigger browser notifications
+    function checkForWarnings(entriesToCheck: ManifestEntry[]) {
+        for (const entry of entriesToCheck) {
+            const warningCount = entry.get_num_warnings();
+            if (warningCount !== undefined && warningCount > 0) {
+                notifyWarningDetected(entry.name, warningCount);
+            }
+        }
+    }
     $effect(() => {
         const interval = setInterval(async () => {
             try {
@@ -36,6 +56,12 @@
                     : new_manifest.entries;
 
                 current_entry = new_manifest.current_entry;
+
+                // Check for warnings and trigger browser notifications
+                const allEntries = current_entry
+                    ? [...new_manifest.entries, current_entry]
+                    : new_manifest.entries;
+                checkForWarnings(allEntries);
 
                 system_stats = await get_system_stats();
                 update_error = undefined;
